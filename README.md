@@ -20,7 +20,7 @@ Install from npm and pick the bundle that fits your environment:
   - Linux x64: `npm install -g @adversity/mcp-database-linux-x64`
   - Windows x64: `npm install -g @adversity/mcp-database-win32-x64`
 - Full bundle (all binaries, ~60MB): `npm install -g @adversity/mcp-database-full`
-- No install: `npx --help`
+- No install: `npx @adversity/mcp-database --help`
 
 ## Quick Start
 
@@ -34,25 +34,25 @@ POSTGRES_HOST=localhost \
 POSTGRES_DATABASE=mydb \
 POSTGRES_USER=user \
 POSTGRES_PASSWORD=password \
-npx --prebuilt postgres
+npx @adversity/mcp-database --prebuilt postgres
 
 # MySQL
 MYSQL_HOST=localhost \
 MYSQL_DATABASE=mydb \
 MYSQL_USER=root \
 MYSQL_PASSWORD=password \
-npx --prebuilt mysql
+npx @adversity/mcp-database --prebuilt mysql
 
 # SQLite (no credentials needed)
 SQLITE_DATABASE=./my-database.db \
-npx --prebuilt sqlite
+npx @adversity/mcp-database --prebuilt sqlite
 
 # MongoDB
 MONGODB_HOST=localhost \
 MONGODB_DATABASE=mydb \
 MONGODB_USER=user \
 MONGODB_PASSWORD=password \
-npx --prebuilt mongodb
+npx @adversity/mcp-database --prebuilt mongodb
 ```
 
 ### Using Custom Configuration

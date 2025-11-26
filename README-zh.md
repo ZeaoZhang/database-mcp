@@ -16,7 +16,7 @@ Node.js MCP（Model Context Protocol）数据库服务器，为智能体提供 4
   - Linux x64: `npm install -g @adversity/mcp-database-linux-x64`  
   - Windows x64: `npm install -g @adversity/mcp-database-win32-x64`
 - 全量包（含全部平台二进制，~60MB）：`npm install -g @adversity/mcp-database-full`
-- 无需安装：`npx --help`
+- 无需安装：`npx @adversity/mcp-database --help`
 
 ## 快速开始
 ### 预置配置（推荐）
@@ -26,11 +26,11 @@ POSTGRES_HOST=localhost \
 POSTGRES_DATABASE=mydb \
 POSTGRES_USER=postgres \
 POSTGRES_PASSWORD=your-password \
-npx --prebuilt postgres
+npx @adversity/mcp-database --prebuilt postgres
 
 # SQLite（无需凭证）
 SQLITE_DATABASE=./my.db \
-npx --prebuilt sqlite
+npx @adversity/mcp-database --prebuilt sqlite
 ```
 
 ### 自定义配置
