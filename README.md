@@ -15,12 +15,12 @@ A Node.js MCP (Model Context Protocol) server that provides database operations 
 Install from npm and pick the bundle that fits your environment:
 
 - Platform-specific (includes binary for one OS/CPU, ~15MB):
-  - macOS ARM64: `npm install -g @adversity/mcp-database @adversity/mcp-database-darwin-arm64`
-  - macOS Intel: `npm install -g @adversity/mcp-database @adversity/mcp-database-darwin-x64`
-  - Linux x64: `npm install -g @adversity/mcp-database @adversity/mcp-database-linux-x64`
-  - Windows x64: `npm install -g @adversity/mcp-database @adversity/mcp-database-win32-x64`
+  - macOS ARM64: `npm install -g @adversity/mcp-database-darwin-arm64`
+  - macOS Intel: `npm install -g @adversity/mcp-database-darwin-x64`
+  - Linux x64: `npm install -g @adversity/mcp-database-linux-x64`
+  - Windows x64: `npm install -g @adversity/mcp-database-win32-x64`
 - Full bundle (all binaries, ~60MB): `npm install -g @adversity/mcp-database-full`
-- No install: `npx @adversity/mcp-database --help`
+- No install: `npx --help`
 
 ## Quick Start
 
@@ -34,25 +34,25 @@ POSTGRES_HOST=localhost \
 POSTGRES_DATABASE=mydb \
 POSTGRES_USER=user \
 POSTGRES_PASSWORD=password \
-npx @adversity/mcp-database --prebuilt postgres
+npx --prebuilt postgres
 
 # MySQL
 MYSQL_HOST=localhost \
 MYSQL_DATABASE=mydb \
 MYSQL_USER=root \
 MYSQL_PASSWORD=password \
-npx @adversity/mcp-database --prebuilt mysql
+npx --prebuilt mysql
 
 # SQLite (no credentials needed)
 SQLITE_DATABASE=./my-database.db \
-npx @adversity/mcp-database --prebuilt sqlite
+npx --prebuilt sqlite
 
 # MongoDB
 MONGODB_HOST=localhost \
 MONGODB_DATABASE=mydb \
 MONGODB_USER=user \
 MONGODB_PASSWORD=password \
-npx @adversity/mcp-database --prebuilt mongodb
+npx --prebuilt mongodb
 ```
 
 ### Using Custom Configuration

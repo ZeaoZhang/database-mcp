@@ -80,7 +80,7 @@ echo ""
 echo "Done!"
 echo ""
 echo "Published packages:"
-echo "  - @adversity/mcp-database (core, ~50KB)"
+echo "  - @adversity/mcp-database-full (core, ~50KB)"
 echo "  - @adversity/mcp-database-full (with all binaries, ~60MB)"
 for pkg_name in "${PLATFORMS[@]}"; do
   echo "  - @adversity/mcp-database-$pkg_name (~15MB)"
