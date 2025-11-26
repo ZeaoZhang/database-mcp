@@ -1,0 +1,21 @@
+{
+  "name": "@mcp-database/linux-x64",
+  "version": "0.1.0",
+  "description": "genai-toolbox binary for Linux x64",
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "main": "index.js",
+  "files": [
+    "bin",
+    "index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anthropics/mcp-database.git",
+    "directory": "packages/linux-x64"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

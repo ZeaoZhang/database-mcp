@@ -1,0 +1,21 @@
+{
+  "name": "@mcp-database/win32-x64",
+  "version": "0.1.0",
+  "description": "genai-toolbox binary for Windows x64",
+  "os": ["win32"],
+  "cpu": ["x64"],
+  "main": "index.js",
+  "files": [
+    "bin",
+    "index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anthropics/mcp-database.git",
+    "directory": "packages/win32-x64"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

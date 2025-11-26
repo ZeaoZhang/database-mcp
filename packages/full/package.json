@@ -1,0 +1,28 @@
+{
+  "name": "@mcp-database/full",
+  "version": "0.1.0",
+  "description": "MCP database server with all platform binaries included (~60MB)",
+  "main": "index.js",
+  "files": [
+    "binaries",
+    "index.js"
+  ],
+  "dependencies": {
+    "mcp-database": "0.1.0"
+  },
+  "keywords": [
+    "mcp",
+    "database",
+    "genai-toolbox",
+    "bundled"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anthropics/mcp-database.git",
+    "directory": "packages/full"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

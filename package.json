@@ -1,0 +1,86 @@
+{
+  "name": "mcp-database",
+  "version": "0.1.0",
+  "description": "MCP server for database operations with support for 40+ databases via genai-toolbox",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "mcp-database": "./dist/bin/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run test && npm run build",
+    "download:binaries": "./scripts/download-binaries.sh",
+    "publish:packages": "./scripts/publish-packages.sh"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "database",
+    "postgres",
+    "mysql",
+    "mongodb",
+    "sqlite",
+    "sql",
+    "ai",
+    "llm",
+    "agent"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/mcp-database.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/mcp-database/issues"
+  },
+  "homepage": "https://github.com/yourusername/mcp-database#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "binaries",
+    "README.md",
+    "LICENSE"
+  ],
+  "optionalDependencies": {
+    "@mcp-database/darwin-arm64": "0.1.0",
+    "@mcp-database/darwin-x64": "0.1.0",
+    "@mcp-database/linux-arm64": "0.1.0",
+    "@mcp-database/linux-x64": "0.1.0",
+    "@mcp-database/win32-x64": "0.1.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "yaml": "^2.6.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.9",
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
+    "@typescript-eslint/parser": "^8.18.1",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

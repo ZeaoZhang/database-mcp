@@ -1,0 +1,21 @@
+{
+  "name": "@mcp-database/darwin-x64",
+  "version": "0.1.0",
+  "description": "genai-toolbox binary for macOS x64 (Intel)",
+  "os": ["darwin"],
+  "cpu": ["x64"],
+  "main": "index.js",
+  "files": [
+    "bin",
+    "index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anthropics/mcp-database.git",
+    "directory": "packages/darwin-x64"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

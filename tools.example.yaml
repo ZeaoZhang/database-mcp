@@ -1,0 +1,105 @@
+# Example tools.yaml configuration for mcp-database
+
+# Data sources - define your database connections
+sources:
+  # PostgreSQL example
+  my-postgres:
+    kind: postgres
+    host: ${POSTGRES_HOST:localhost}
+    port: ${POSTGRES_PORT:5432}
+    database: ${POSTGRES_DATABASE:mydb}
+    user: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD}
+
+  # MySQL example
+  my-mysql:
+    kind: mysql
+    host: ${MYSQL_HOST:localhost}
+    port: ${MYSQL_PORT:3306}
+    database: ${MYSQL_DATABASE:mydb}
+    user: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD}
+
+  # SQLite example
+  my-sqlite:
+    kind: sqlite
+    database: ${SQLITE_DATABASE:./database.db}
+
+  # MongoDB example
+  my-mongo:
+    kind: mongodb
+    host: ${MONGODB_HOST:localhost}
+    port: ${MONGODB_PORT:27017}
+    database: ${MONGODB_DATABASE:mydb}
+    user: ${MONGODB_USER}
+    password: ${MONGODB_PASSWORD}
+
+  # Cloud SQL PostgreSQL example
+  my-cloud-sql:
+    kind: cloud-sql-postgres
+    project: ${GCP_PROJECT}
+    region: ${GCP_REGION:us-central1}
+    instance: ${CLOUD_SQL_INSTANCE}
+    database: ${POSTGRES_DATABASE:postgres}
+    user: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD}
+
+# Custom tools (optional)
+# If not specified, default tools (list_tables, execute_sql) will be used
+tools:
+  # Example: Custom SQL query tool
+  get_user_by_id:
+    kind: postgres-sql
+    source: my-postgres
+    description: Get user information by user ID
+    parameters:
+      - name: user_id
+        type: number
+        description: The ID of the user to retrieve
+    statement: |
+      SELECT id, username, email, created_at
+      FROM users
+      WHERE id = $1;
+
+  search_users:
+    kind: postgres-sql
+    source: my-postgres
+    description: Search users by username or email
+    parameters:
+      - name: query
+        type: string
+        description: Search query string
+    statement: |
+      SELECT id, username, email
+      FROM users
+      WHERE username ILIKE '%' || $1 || '%'
+         OR email ILIKE '%' || $1 || '%'
+      LIMIT 20;
+
+  create_user:
+    kind: postgres-sql
+    source: my-postgres
+    description: Create a new user
+    parameters:
+      - name: username
+        type: string
+        description: Username for the new user
+      - name: email
+        type: string
+        description: Email address for the new user
+    statement: |
+      INSERT INTO users (username, email, created_at)
+      VALUES ($1, $2, NOW())
+      RETURNING id, username, email;
+
+# Toolsets (optional)
+# Group tools for different use cases
+toolsets:
+  user_management:
+    - get_user_by_id
+    - search_users
+    - create_user
+
+  read_only:
+    - get_user_by_id
+    - search_users
