@@ -6,22 +6,15 @@ import { readFileSync } from 'fs';
 import { parse as parseYaml } from 'yaml';
 import type { ToolsConfig, PrebuiltDatabase } from './types.js';
 
-const GLOBAL_DB_ENV = {
-  host: getFirstEnv(['MCP_DATABASE_HOST', 'DATABASE_HOST']),
-  port: getFirstEnv(['MCP_DATABASE_PORT', 'DATABASE_PORT']),
-  database: getFirstEnv(['MCP_DATABASE_NAME', 'DATABASE_NAME']),
-  user: getFirstEnv(['MCP_DATABASE_USER', 'DATABASE_USER']),
-  password: getFirstEnv(['MCP_DATABASE_PASSWORD', 'DATABASE_PASSWORD']),
-};
-
-function getFirstEnv(keys: string[]): string | undefined {
-  for (const key of keys) {
-    const value = process.env[key];
-    if (value) {
-      return value;
-    }
-  }
-  return undefined;
+// Helper function to get current environment variables dynamically
+function getGlobalDbEnv() {
+  return {
+    host: process.env.DATABASE_HOST,
+    port: process.env.DATABASE_PORT,
+    database: process.env.DATABASE_NAME,
+    user: process.env.DATABASE_USER,
+    password: process.env.DATABASE_PASSWORD,
+  };
 }
 
 function toNumber(value: string | undefined, fallback: number): number {
@@ -74,16 +67,17 @@ function replaceEnvVars(obj: unknown): any {
  * Generate a minimal tools.yaml config for prebuilt database types
  */
 export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
+  const GLOBAL_DB_ENV = getGlobalDbEnv();
   const configs: Record<PrebuiltDatabase, ToolsConfig> = {
     postgres: {
       sources: {
         'postgres-db': {
           kind: 'postgres',
-          host: GLOBAL_DB_ENV.host ?? process.env.POSTGRES_HOST ?? 'localhost',
-          port: toNumber(GLOBAL_DB_ENV.port ?? process.env.POSTGRES_PORT, 5432),
-          database: GLOBAL_DB_ENV.database ?? process.env.POSTGRES_DATABASE ?? 'postgres',
-          user: GLOBAL_DB_ENV.user ?? process.env.POSTGRES_USER ?? 'postgres',
-          password: GLOBAL_DB_ENV.password ?? process.env.POSTGRES_PASSWORD ?? '',
+          host: GLOBAL_DB_ENV.host ?? 'localhost',
+          port: toNumber(GLOBAL_DB_ENV.port, 5432),
+          database: GLOBAL_DB_ENV.database ?? 'postgres',
+          user: GLOBAL_DB_ENV.user ?? 'postgres',
+          password: GLOBAL_DB_ENV.password ?? '',
         },
       },
     },
@@ -91,11 +85,11 @@ export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
       sources: {
         'mysql-db': {
           kind: 'mysql',
-          host: GLOBAL_DB_ENV.host ?? process.env.MYSQL_HOST ?? 'localhost',
-          port: toNumber(GLOBAL_DB_ENV.port ?? process.env.MYSQL_PORT, 3306),
-          database: GLOBAL_DB_ENV.database ?? process.env.MYSQL_DATABASE ?? 'mysql',
-          user: GLOBAL_DB_ENV.user ?? process.env.MYSQL_USER ?? 'root',
-          password: GLOBAL_DB_ENV.password ?? process.env.MYSQL_PASSWORD ?? '',
+          host: GLOBAL_DB_ENV.host ?? 'localhost',
+          port: toNumber(GLOBAL_DB_ENV.port, 3306),
+          database: GLOBAL_DB_ENV.database ?? 'mysql',
+          user: GLOBAL_DB_ENV.user ?? 'root',
+          password: GLOBAL_DB_ENV.password ?? '',
         },
       },
     },
@@ -103,7 +97,7 @@ export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
       sources: {
         'sqlite-db': {
           kind: 'sqlite',
-          database: GLOBAL_DB_ENV.database ?? process.env.SQLITE_DATABASE ?? './database.db',
+          database: GLOBAL_DB_ENV.database ?? './database.db',
         },
       },
     },
@@ -111,11 +105,11 @@ export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
       sources: {
         'mongo-db': {
           kind: 'mongodb',
-          host: GLOBAL_DB_ENV.host ?? process.env.MONGODB_HOST ?? 'localhost',
-          port: toNumber(GLOBAL_DB_ENV.port ?? process.env.MONGODB_PORT, 27017),
-          database: GLOBAL_DB_ENV.database ?? process.env.MONGODB_DATABASE ?? 'test',
-          user: GLOBAL_DB_ENV.user ?? process.env.MONGODB_USER ?? '',
-          password: GLOBAL_DB_ENV.password ?? process.env.MONGODB_PASSWORD ?? '',
+          host: GLOBAL_DB_ENV.host ?? 'localhost',
+          port: toNumber(GLOBAL_DB_ENV.port, 27017),
+          database: GLOBAL_DB_ENV.database ?? 'test',
+          user: GLOBAL_DB_ENV.user ?? '',
+          password: GLOBAL_DB_ENV.password ?? '',
         },
       },
     },
@@ -123,9 +117,9 @@ export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
       sources: {
         'redis-db': {
           kind: 'redis',
-          host: GLOBAL_DB_ENV.host ?? process.env.REDIS_HOST ?? 'localhost',
-          port: toNumber(GLOBAL_DB_ENV.port ?? process.env.REDIS_PORT, 6379),
-          password: GLOBAL_DB_ENV.password ?? process.env.REDIS_PASSWORD ?? '',
+          host: GLOBAL_DB_ENV.host ?? 'localhost',
+          port: toNumber(GLOBAL_DB_ENV.port, 6379),
+          password: GLOBAL_DB_ENV.password ?? '',
         },
       },
     },
@@ -133,11 +127,11 @@ export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
       sources: {
         'mssql-db': {
           kind: 'mssql',
-          host: GLOBAL_DB_ENV.host ?? process.env.MSSQL_HOST ?? 'localhost',
-          port: toNumber(GLOBAL_DB_ENV.port ?? process.env.MSSQL_PORT, 1433),
-          database: GLOBAL_DB_ENV.database ?? process.env.MSSQL_DATABASE ?? 'master',
-          user: GLOBAL_DB_ENV.user ?? process.env.MSSQL_USER ?? 'sa',
-          password: GLOBAL_DB_ENV.password ?? process.env.MSSQL_PASSWORD ?? '',
+          host: GLOBAL_DB_ENV.host ?? 'localhost',
+          port: toNumber(GLOBAL_DB_ENV.port, 1433),
+          database: GLOBAL_DB_ENV.database ?? 'master',
+          user: GLOBAL_DB_ENV.user ?? 'sa',
+          password: GLOBAL_DB_ENV.password ?? '',
         },
       },
     },
@@ -148,9 +142,9 @@ export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
           project: process.env.GCP_PROJECT ?? '',
           region: process.env.GCP_REGION ?? 'us-central1',
           instance: process.env.CLOUD_SQL_INSTANCE ?? '',
-          database: GLOBAL_DB_ENV.database ?? process.env.POSTGRES_DATABASE ?? 'postgres',
-          user: GLOBAL_DB_ENV.user ?? process.env.POSTGRES_USER ?? 'postgres',
-          password: GLOBAL_DB_ENV.password ?? process.env.POSTGRES_PASSWORD ?? '',
+          database: GLOBAL_DB_ENV.database ?? 'postgres',
+          user: GLOBAL_DB_ENV.user ?? 'postgres',
+          password: GLOBAL_DB_ENV.password ?? '',
         },
       },
     },
@@ -161,9 +155,9 @@ export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
           project: process.env.GCP_PROJECT ?? '',
           region: process.env.GCP_REGION ?? 'us-central1',
           instance: process.env.CLOUD_SQL_INSTANCE ?? '',
-          database: GLOBAL_DB_ENV.database ?? process.env.MYSQL_DATABASE ?? 'mysql',
-          user: GLOBAL_DB_ENV.user ?? process.env.MYSQL_USER ?? 'root',
-          password: GLOBAL_DB_ENV.password ?? process.env.MYSQL_PASSWORD ?? '',
+          database: GLOBAL_DB_ENV.database ?? 'mysql',
+          user: GLOBAL_DB_ENV.user ?? 'root',
+          password: GLOBAL_DB_ENV.password ?? '',
         },
       },
     },
@@ -175,9 +169,9 @@ export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
           region: process.env.GCP_REGION ?? 'us-central1',
           cluster: process.env.ALLOYDB_CLUSTER ?? '',
           instance: process.env.ALLOYDB_INSTANCE ?? '',
-          database: GLOBAL_DB_ENV.database ?? process.env.POSTGRES_DATABASE ?? 'postgres',
-          user: GLOBAL_DB_ENV.user ?? process.env.POSTGRES_USER ?? 'postgres',
-          password: GLOBAL_DB_ENV.password ?? process.env.POSTGRES_PASSWORD ?? '',
+          database: GLOBAL_DB_ENV.database ?? 'postgres',
+          user: GLOBAL_DB_ENV.user ?? 'postgres',
+          password: GLOBAL_DB_ENV.password ?? '',
         },
       },
     },
@@ -219,12 +213,12 @@ export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
  */
 export function validatePrebuiltEnv(dbType: PrebuiltDatabase): void {
   const requiredVars: Record<PrebuiltDatabase, string[]> = {
-    postgres: ['POSTGRES_HOST', 'POSTGRES_DATABASE'],
-    mysql: ['MYSQL_HOST', 'MYSQL_DATABASE'],
+    postgres: [],
+    mysql: [],
     sqlite: [],
-    mongodb: ['MONGODB_HOST', 'MONGODB_DATABASE'],
-    redis: ['REDIS_HOST'],
-    mssql: ['MSSQL_HOST', 'MSSQL_DATABASE'],
+    mongodb: [],
+    redis: [],
+    mssql: [],
     'cloud-sql-postgres': ['GCP_PROJECT', 'CLOUD_SQL_INSTANCE'],
     'cloud-sql-mysql': ['GCP_PROJECT', 'CLOUD_SQL_INSTANCE'],
     'alloydb-pg': ['GCP_PROJECT', 'ALLOYDB_CLUSTER', 'ALLOYDB_INSTANCE'],

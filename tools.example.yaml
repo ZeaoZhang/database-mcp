@@ -1,39 +1,39 @@
 # mcp-database 自定义 tools.yaml 示例
-# 可选：设置 MCP_DATABASE_HOST/PORT/NAME/USER/PASSWORD 统一控制默认数据库连接
+# 可选：设置 DATABASE_HOST/PORT/NAME/USER/PASSWORD 统一控制默认数据库连接
 
 # 数据源定义 - 声明可复用的数据库连接
 sources:
   # PostgreSQL 示例
   my-postgres:
     kind: postgres
-    host: ${POSTGRES_HOST:localhost}
-    port: ${POSTGRES_PORT:5432}
-    database: ${POSTGRES_DATABASE:mydb}
-    user: ${POSTGRES_USER:postgres}
-    password: ${POSTGRES_PASSWORD}
+    host: ${DATABASE_HOST:localhost}
+    port: ${DATABASE_PORT:5432}
+    database: ${DATABASE_NAME:mydb}
+    user: ${DATABASE_USER:postgres}
+    password: ${DATABASE_PASSWORD}
 
   # MySQL 示例
   my-mysql:
     kind: mysql
-    host: ${MYSQL_HOST:localhost}
-    port: ${MYSQL_PORT:3306}
-    database: ${MYSQL_DATABASE:mydb}
-    user: ${MYSQL_USER:root}
-    password: ${MYSQL_PASSWORD}
+    host: ${DATABASE_HOST:localhost}
+    port: ${DATABASE_PORT:3306}
+    database: ${DATABASE_NAME:mydb}
+    user: ${DATABASE_USER:root}
+    password: ${DATABASE_PASSWORD}
 
   # SQLite 示例（默认指向本仓库的 sample.sqlite）
   my-sqlite:
     kind: sqlite
-    database: ${SQLITE_DATABASE:./sample.sqlite}
+    database: ${DATABASE_NAME:./sample.sqlite}
 
   # MongoDB 示例
   my-mongo:
     kind: mongodb
-    host: ${MONGODB_HOST:localhost}
-    port: ${MONGODB_PORT:27017}
-    database: ${MONGODB_DATABASE:mydb}
-    user: ${MONGODB_USER}
-    password: ${MONGODB_PASSWORD}
+    host: ${DATABASE_HOST:localhost}
+    port: ${DATABASE_PORT:27017}
+    database: ${DATABASE_NAME:mydb}
+    user: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
 
   # Cloud SQL PostgreSQL 示例
   my-cloud-sql:

@@ -25,15 +25,15 @@ describe('config', () => {
     });
 
     it('should use environment variables', () => {
-      process.env.POSTGRES_HOST = 'test-host';
-      process.env.POSTGRES_PORT = '5433';
+      process.env.DATABASE_HOST = 'test-host';
+      process.env.DATABASE_PORT = '5433';
 
       const config = generatePrebuiltConfig('postgres');
       expect(config.sources['postgres-db'].host).toBe('test-host');
       expect(config.sources['postgres-db'].port).toBe(5433);
 
-      delete process.env.POSTGRES_HOST;
-      delete process.env.POSTGRES_PORT;
+      delete process.env.DATABASE_HOST;
+      delete process.env.DATABASE_PORT;
     });
   });
 });

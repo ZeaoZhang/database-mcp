@@ -19,17 +19,17 @@ describe('SQLite Configuration', () => {
       expect(config.sources['sqlite-db'].database).toBe('./database.db');
     });
 
-    it('should use SQLITE_DATABASE environment variable', () => {
-      const originalEnv = process.env.SQLITE_DATABASE;
-      process.env.SQLITE_DATABASE = './test.db';
+    it('should use DATABASE_NAME environment variable', () => {
+      const originalEnv = process.env.DATABASE_NAME;
+      process.env.DATABASE_NAME = './test.db';
 
       const config = generatePrebuiltConfig('sqlite');
       expect(config.sources['sqlite-db'].database).toBe('./test.db');
 
       if (originalEnv !== undefined) {
-        process.env.SQLITE_DATABASE = originalEnv;
+        process.env.DATABASE_NAME = originalEnv;
       } else {
-        delete process.env.SQLITE_DATABASE;
+        delete process.env.DATABASE_NAME;
       }
     });
 

@@ -16,14 +16,14 @@ Node.js MCP（Model Context Protocol）数据库服务器，为智能体提供 4
 ### 预置配置（推荐）
 ```bash
 # PostgreSQL
-POSTGRES_HOST=localhost \
-POSTGRES_DATABASE=mydb \
-POSTGRES_USER=postgres \
-POSTGRES_PASSWORD=your-password \
+DATABASE_HOST=localhost \
+DATABASE_NAME=mydb \
+DATABASE_USER=postgres \
+DATABASE_PASSWORD=your-password \
 npx @adversity/mcp-database --prebuilt postgres
 
 # SQLite（无需凭证）
-SQLITE_DATABASE=./my.db \
+DATABASE_NAME=./my.db \
 npx @adversity/mcp-database --prebuilt sqlite
 ```
 
@@ -55,7 +55,7 @@ tools:
 专为 AI 设计的数据库探索工具集，无需提前了解 schema，让 AI 自主探索数据库结构：
 
 ```bash
-SQLITE_DATABASE=./your-database.db \
+DATABASE_NAME=./your-database.db \
 npx @adversity/mcp-database --config prebuilt/sqlite-introspection.yaml
 ```
 
@@ -95,7 +95,7 @@ npx @adversity/mcp-database --config prebuilt/sqlite-introspection.yaml
       "command": "npx",
       "args": ["@adversity/mcp-database", "--config", "prebuilt/sqlite-introspection.yaml"],
       "env": {
-        "SQLITE_DATABASE": "./your-database.db"
+        "DATABASE_NAME": "./your-database.db"
       }
     }
   }
@@ -107,7 +107,7 @@ npx @adversity/mcp-database --config prebuilt/sqlite-introspection.yaml
 2. 确认示例数据库存在：`ls sample.sqlite`
 3. 启动：
    ```bash
-   SQLITE_DATABASE=$(pwd)/sample.sqlite \
+   DATABASE_NAME=$(pwd)/sample.sqlite \
    npx @adversity/mcp-database --config tools.yaml --verbose
    ```
 4. MCP 客户端即可调用 `sqlite_crud` 工具集（位于 `tools.example.yaml`）：
@@ -152,13 +152,15 @@ toolsets:
 
 ### 统一环境变量与 CLI 覆盖
 
-所有预置数据库都会按以下顺序读取连接信息：
+所有预置数据库都使用统一的环境变量：
 
-1. 通用变量 `MCP_DATABASE_HOST/PORT/NAME/USER/PASSWORD`
-2. 传统变量（如 `POSTGRES_HOST`、`MYSQL_PORT` 等）
-3. 内置默认值
+- `DATABASE_HOST` - 数据库主机（默认：localhost）
+- `DATABASE_PORT` - 数据库端口（默认值根据数据库类型而定）
+- `DATABASE_NAME` - 数据库名称或文件路径
+- `DATABASE_USER` - 数据库用户
+- `DATABASE_PASSWORD` - 数据库密码
 
-也可以直接通过 CLI 指定并写入通用变量：
+也可以直接通过 CLI 覆盖：
 
 ```bash
 mcp-database --prebuilt mysql \
@@ -198,10 +200,10 @@ CLI 仍支持 `--stdio` 选项，但推荐使用 `--transport=http` 来切换模
       "command": "npx",
       "args": ["@adversity/mcp-database", "--prebuilt", "postgres"],
       "env": {
-        "POSTGRES_HOST": "localhost",
-        "POSTGRES_DATABASE": "mydb",
-        "POSTGRES_USER": "postgres",
-        "POSTGRES_PASSWORD": "your-password"
+        "DATABASE_HOST": "localhost",
+        "DATABASE_NAME": "mydb",
+        "DATABASE_USER": "postgres",
+        "DATABASE_PASSWORD": "your-password"
       }
     }
   }
@@ -217,7 +219,7 @@ CLI 仍支持 `--stdio` 选项，但推荐使用 `--transport=http` 来切换模
       "command": "npx",
       "args": ["@adversity/mcp-database", "--prebuilt", "sqlite"],
       "env": {
-        "SQLITE_DATABASE": "./my.db"
+        "DATABASE_NAME": "./my.db"
       }
     }
   }
@@ -244,10 +246,24 @@ mcp-database [OPTIONS]
 ```
 
 ## 常用环境变量
-- PostgreSQL: `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DATABASE`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
-- MySQL: `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`
-- MongoDB: `MONGODB_HOST`, `MONGODB_PORT`, `MONGODB_DATABASE`, `MONGODB_USER`, `MONGODB_PASSWORD`
-- SQLite: `SQLITE_DATABASE`（文件路径）
+
+所有数据库类型使用相同的统一环境变量：
+
+- `DATABASE_HOST` - 数据库主机（默认：localhost）
+- `DATABASE_PORT` - 数据库端口（默认值根据数据库类型）
+  - PostgreSQL: 5432
+  - MySQL: 3306
+  - MongoDB: 27017
+  - Redis: 6379
+  - MSSQL: 1433
+- `DATABASE_NAME` - 数据库名称或文件路径
+- `DATABASE_USER` - 数据库用户
+- `DATABASE_PASSWORD` - 数据库密码
+
+云服务（Cloud SQL、AlloyDB、BigQuery、Spanner、Firestore）需要额外的 GCP 变量：
+- `GCP_PROJECT` - GCP 项目 ID
+- `GCP_REGION` - GCP 区域（默认：us-central1）
+- `CLOUD_SQL_INSTANCE` / `ALLOYDB_CLUSTER` / 等 - 服务特定标识符
 
 ## 测试
 

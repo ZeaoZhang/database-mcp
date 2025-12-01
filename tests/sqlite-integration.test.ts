@@ -149,11 +149,11 @@ describe('SQLite Integration Tests', () => {
   });
 
   describe('Environment Variable Substitution', () => {
-    it('should substitute SQLITE_DATABASE environment variable', () => {
-      const originalEnv = process.env.SQLITE_DATABASE;
+    it('should substitute DATABASE_NAME environment variable', () => {
+      const originalEnv = process.env.DATABASE_NAME;
 
       // Set environment variable
-      process.env.SQLITE_DATABASE = './custom-test.db';
+      process.env.DATABASE_NAME = './custom-test.db';
 
       const config = loadConfig(exampleConfigPath);
 
@@ -162,15 +162,15 @@ describe('SQLite Integration Tests', () => {
 
       // Restore original
       if (originalEnv !== undefined) {
-        process.env.SQLITE_DATABASE = originalEnv;
+        process.env.DATABASE_NAME = originalEnv;
       } else {
-        delete process.env.SQLITE_DATABASE;
+        delete process.env.DATABASE_NAME;
       }
     });
 
     it('should use default value when env var not set', () => {
-      const originalEnv = process.env.SQLITE_DATABASE;
-      delete process.env.SQLITE_DATABASE;
+      const originalEnv = process.env.DATABASE_NAME;
+      delete process.env.DATABASE_NAME;
 
       const config = loadConfig(exampleConfigPath);
 
@@ -179,7 +179,7 @@ describe('SQLite Integration Tests', () => {
 
       // Restore original
       if (originalEnv !== undefined) {
-        process.env.SQLITE_DATABASE = originalEnv;
+        process.env.DATABASE_NAME = originalEnv;
       }
     });
   });

@@ -215,6 +215,14 @@ mcp-database - 数据库 MCP 服务器 (内网版本)
   -p, --prebuilt <type>      使用预设的数据库配置
   -b, --binary-path <path>   指定 genai-toolbox 二进制文件路径
       --stdio                使用 stdio 传输 (默认: true)
+      --transport <mode>     传输模式: stdio 或 http (默认: stdio)
+      --db-host <host>       数据库主机地址
+      --db-port <port>       数据库端口
+      --db-name <name>       数据库名称
+      --db-user <user>       数据库用户
+      --db-password <pass>   数据库密码
+      --toolbox-host <host>  Toolbox HTTP 监听地址 (默认: 127.0.0.1)
+      --toolbox-port <port>  Toolbox HTTP 端口 (默认: 5000)
   -v, --version              显示版本号
   -h, --help                 显示帮助信息
       --verbose              启用详细日志
@@ -233,39 +241,54 @@ mcp-database - 数据库 MCP 服务器 (内网版本)
   # 使用自定义配置文件
   mcp-database --config tools.yaml
 
-  # 指定二进制文件路径
-  mcp-database --binary-path /opt/toolbox --prebuilt postgres
+  # 使用预设配置并通过 CLI 指定连接参数
+  mcp-database --prebuilt postgres \\
+    --db-host localhost \\
+    --db-port 5432 \\
+    --db-name mydb \\
+    --db-user postgres \\
+    --db-password secret
 
-  # 使用预设 PostgreSQL 配置
-  TOOLBOX_PATH=/opt/toolbox \\
-  POSTGRES_HOST=localhost \\
-  POSTGRES_DATABASE=mydb \\
+  # 使用环境变量
+  DATABASE_HOST=localhost \\
+  DATABASE_NAME=mydb \\
+  DATABASE_USER=postgres \\
+  DATABASE_PASSWORD=secret \\
   mcp-database --prebuilt postgres
 
+  # 切换到 HTTP 传输并自定义端口
+  mcp-database --prebuilt sqlite \\
+    --transport http \\
+    --toolbox-host 0.0.0.0 \\
+    --toolbox-port 5900
+
 环境变量:
-  TOOLBOX_PATH    - genai-toolbox 二进制文件路径
+  数据库连接 (所有数据库通用):
+    DATABASE_HOST      - 数据库主机 (默认: localhost)
+    DATABASE_PORT      - 数据库端口 (根据类型自动设置)
+    DATABASE_NAME      - 数据库名称或文件路径
+    DATABASE_USER      - 数据库用户
+    DATABASE_PASSWORD  - 数据库密码
 
-  PostgreSQL:
-    POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DATABASE, POSTGRES_USER, POSTGRES_PASSWORD
+  Toolbox 配置:
+    MCP_TOOLBOX_TRANSPORT  - 传输模式: stdio 或 http (默认: stdio)
+    MCP_TOOLBOX_HOST       - HTTP 监听地址 (默认: 127.0.0.1)
+    MCP_TOOLBOX_PORT       - HTTP 端口 (默认: 5000)
 
-  MySQL:
-    MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD
-
-  MongoDB:
-    MONGODB_HOST, MONGODB_PORT, MONGODB_DATABASE, MONGODB_USER, MONGODB_PASSWORD
-
-  Redis:
-    REDIS_HOST, REDIS_PORT, REDIS_PASSWORD
+  其他:
+    TOOLBOX_PATH    - genai-toolbox 二进制文件路径
 
 MCP 配置示例 (.mcp.json):
   {
     "mcpServers": {
       "database": {
         "command": "npx",
-        "args": ["mcp-database", "--binary-path", "/opt/toolbox", "--prebuilt", "postgres"],
+        "args": ["@adversity/mcp-database", "--prebuilt", "postgres"],
         "env": {
-          "POSTGRES_HOST": "localhost",
-          "POSTGRES_DATABASE": "mydb"
+          "DATABASE_HOST": "localhost",
+          "DATABASE_NAME": "mydb",
+          "DATABASE_USER": "postgres",
+          "DATABASE_PASSWORD": "your-password"
         }
       }
     }

@@ -4,7 +4,7 @@
 sources:
   sqlite-db:
     kind: sqlite
-    database: ${SQLITE_DATABASE:./database.db}
+    database: ${DATABASE_NAME:./database.db}
 
 tools:
   # ==================== 数据库级别查询 ====================

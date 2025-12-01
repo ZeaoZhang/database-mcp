@@ -30,28 +30,28 @@ The easiest way to get started is with prebuilt database configurations:
 
 ```bash
 # PostgreSQL
-POSTGRES_HOST=localhost \
-POSTGRES_DATABASE=mydb \
-POSTGRES_USER=user \
-POSTGRES_PASSWORD=password \
+DATABASE_HOST=localhost \
+DATABASE_NAME=mydb \
+DATABASE_USER=user \
+DATABASE_PASSWORD=password \
 npx @adversity/mcp-database --prebuilt postgres
 
 # MySQL
-MYSQL_HOST=localhost \
-MYSQL_DATABASE=mydb \
-MYSQL_USER=root \
-MYSQL_PASSWORD=password \
+DATABASE_HOST=localhost \
+DATABASE_NAME=mydb \
+DATABASE_USER=root \
+DATABASE_PASSWORD=password \
 npx @adversity/mcp-database --prebuilt mysql
 
 # SQLite (no credentials needed)
-SQLITE_DATABASE=./my-database.db \
+DATABASE_NAME=./my-database.db \
 npx @adversity/mcp-database --prebuilt sqlite
 
 # MongoDB
-MONGODB_HOST=localhost \
-MONGODB_DATABASE=mydb \
-MONGODB_USER=user \
-MONGODB_PASSWORD=password \
+DATABASE_HOST=localhost \
+DATABASE_NAME=mydb \
+DATABASE_USER=user \
+DATABASE_PASSWORD=password \
 npx @adversity/mcp-database --prebuilt mongodb
 ```
 
@@ -92,7 +92,7 @@ mcp-database --config tools.yaml
 Designed for AI to explore unknown databases without schema knowledge:
 
 ```bash
-SQLITE_DATABASE=./your-database.db \
+DATABASE_NAME=./your-database.db \
 npx @adversity/mcp-database --config prebuilt/sqlite-introspection.yaml
 ```
 
@@ -132,7 +132,7 @@ npx @adversity/mcp-database --config prebuilt/sqlite-introspection.yaml
       "command": "npx",
       "args": ["@adversity/mcp-database", "--config", "prebuilt/sqlite-introspection.yaml"],
       "env": {
-        "SQLITE_DATABASE": "./your-database.db"
+        "DATABASE_NAME": "./your-database.db"
       }
     }
   }
@@ -145,7 +145,7 @@ npx @adversity/mcp-database --config prebuilt/sqlite-introspection.yaml
 2. Verify sample database exists: `ls sample.sqlite`
 3. Run:
    ```bash
-   SQLITE_DATABASE=$(pwd)/sample.sqlite \
+   DATABASE_NAME=$(pwd)/sample.sqlite \
    npx @adversity/mcp-database --config tools.yaml --verbose
    ```
 4. The MCP client can access `sqlite_crud` toolset from `tools.example.yaml`:
@@ -192,13 +192,15 @@ toolsets:
 
 ### Unified Environment Variables and CLI Override
 
-All prebuilt databases parse connection parameters in the following priority:
+All prebuilt databases use simple, unified environment variables:
 
-1. Generic variables: `MCP_DATABASE_HOST/PORT/NAME/USER/PASSWORD`
-2. Legacy variables: Database-specific variables like `POSTGRES_HOST`, `MYSQL_PORT`, etc.
-3. Default values (e.g., host=localhost, port=5432)
+- `DATABASE_HOST` - Database host (default: localhost)
+- `DATABASE_PORT` - Database port (default: depends on database type)
+- `DATABASE_NAME` - Database name
+- `DATABASE_USER` - Database user
+- `DATABASE_PASSWORD` - Database password
 
-也可以通过 CLI 覆盖，所有值会自动写入通用变量：
+You can also override via CLI:
 
 ```bash
 mcp-database --prebuilt postgres \
@@ -242,11 +244,11 @@ Add to your `.mcp.json` or `claude_desktop_config.json`:
       "command": "npx",
       "args": ["@adversity/mcp-database", "--prebuilt", "postgres"],
       "env": {
-        "POSTGRES_HOST": "localhost",
-        "POSTGRES_PORT": "5432",
-        "POSTGRES_DATABASE": "mydb",
-        "POSTGRES_USER": "postgres",
-        "POSTGRES_PASSWORD": "your-password"
+        "DATABASE_HOST": "localhost",
+        "DATABASE_PORT": "5432",
+        "DATABASE_NAME": "mydb",
+        "DATABASE_USER": "postgres",
+        "DATABASE_PASSWORD": "your-password"
       }
     }
   }
@@ -264,10 +266,10 @@ Create `.cursor/mcp.json`:
       "command": "npx",
       "args": ["@adversity/mcp-database", "--prebuilt", "mysql"],
       "env": {
-        "MYSQL_HOST": "localhost",
-        "MYSQL_DATABASE": "mydb",
-        "MYSQL_USER": "root",
-        "MYSQL_PASSWORD": "your-password"
+        "DATABASE_HOST": "localhost",
+        "DATABASE_NAME": "mydb",
+        "DATABASE_USER": "root",
+        "DATABASE_PASSWORD": "your-password"
       }
     }
   }
@@ -285,8 +287,8 @@ Create `.vscode/mcp.json`:
       "command": "npx",
       "args": ["@adversity/mcp-database", "--prebuilt", "postgres"],
       "env": {
-        "POSTGRES_HOST": "localhost",
-        "POSTGRES_DATABASE": "mydb"
+        "DATABASE_HOST": "localhost",
+        "DATABASE_NAME": "mydb"
       }
     }
   }
@@ -365,31 +367,23 @@ Get all users from the users table where age > 25
 
 ## Environment Variables
 
-### PostgreSQL
-- `POSTGRES_HOST` - Database host (default: localhost)
-- `POSTGRES_PORT` - Database port (default: 5432)
-- `POSTGRES_DATABASE` - Database name (required)
-- `POSTGRES_USER` - Database user (default: postgres)
-- `POSTGRES_PASSWORD` - Database password
+All database types use the same unified environment variables:
 
-### MySQL
-- `MYSQL_HOST` - Database host (default: localhost)
-- `MYSQL_PORT` - Database port (default: 3306)
-- `MYSQL_DATABASE` - Database name (required)
-- `MYSQL_USER` - Database user (default: root)
-- `MYSQL_PASSWORD` - Database password
+- `DATABASE_HOST` - Database host (default: localhost)
+- `DATABASE_PORT` - Database port (default: varies by database type)
+  - PostgreSQL: 5432
+  - MySQL: 3306
+  - MongoDB: 27017
+  - Redis: 6379
+  - MSSQL: 1433
+- `DATABASE_NAME` - Database name or file path
+- `DATABASE_USER` - Database user
+- `DATABASE_PASSWORD` - Database password
 
-### MongoDB
-- `MONGODB_HOST` - Database host (default: localhost)
-- `MONGODB_PORT` - Database port (default: 27017)
-- `MONGODB_DATABASE` - Database name (required)
-- `MONGODB_USER` - Database user
-- `MONGODB_PASSWORD` - Database password
-
-### SQLite
-- `SQLITE_DATABASE` - Path to SQLite database file (default: ./database.db)
-
-See documentation for other database types.
+For cloud services (Cloud SQL, AlloyDB, BigQuery, Spanner, Firestore), additional GCP-specific variables are required:
+- `GCP_PROJECT` - GCP project ID
+- `GCP_REGION` - GCP region (default: us-central1)
+- `CLOUD_SQL_INSTANCE` / `ALLOYDB_CLUSTER` / etc. - Service-specific identifiers
 
 ## CLI Reference
 

@@ -1,6 +1,6 @@
 {
   "name": "@adversity/mcp-database",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for database operations with support for 40+ databases via genai-toolbox",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -62,10 +62,10 @@
     "LICENSE"
   ],
   "optionalDependencies": {
-    "@adversity/mcp-database-darwin-arm64": "0.1.0",
-    "@adversity/mcp-database-darwin-x64": "0.1.0",
-    "@adversity/mcp-database-linux-x64": "0.1.0",
-    "@adversity/mcp-database-win32-x64": "0.1.0"
+    "@adversity/mcp-database-darwin-arm64": "0.2.0",
+    "@adversity/mcp-database-darwin-x64": "0.2.0",
+    "@adversity/mcp-database-linux-x64": "0.2.0",
+    "@adversity/mcp-database-win32-x64": "0.2.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
