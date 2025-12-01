@@ -46,6 +46,30 @@ async function main() {
           type: 'boolean',
           default: true,
         },
+        'db-host': {
+          type: 'string',
+        },
+        'db-port': {
+          type: 'string',
+        },
+        'db-name': {
+          type: 'string',
+        },
+        'db-user': {
+          type: 'string',
+        },
+        'db-password': {
+          type: 'string',
+        },
+        'toolbox-host': {
+          type: 'string',
+        },
+        'toolbox-port': {
+          type: 'string',
+        },
+        transport: {
+          type: 'string',
+        },
         version: {
           type: 'boolean',
           short: 'v',
@@ -95,6 +119,7 @@ async function main() {
 
     // 加载或生成配置
     let config;
+    let prebuiltType: PrebuiltDatabase | undefined;
 
     if (values.config) {
       if (!existsSync(values.config)) {
@@ -115,6 +140,7 @@ async function main() {
       console.error(`使用预设配置: ${dbType}`);
       validatePrebuiltEnv(dbType);
       config = generatePrebuiltConfig(dbType);
+      prebuiltType = dbType;
     } else {
       console.error('错误: 必须指定 --config 或 --prebuilt 参数');
       printHelp();
@@ -125,12 +151,46 @@ async function main() {
       console.error('配置信息:', JSON.stringify(config, null, 2));
     }
 
+    if (values['db-host']) {
+      process.env.MCP_DATABASE_HOST = values['db-host'];
+    }
+    if (values['db-port']) {
+      process.env.MCP_DATABASE_PORT = values['db-port'];
+    }
+    if (values['db-name']) {
+      process.env.MCP_DATABASE_NAME = values['db-name'];
+    }
+    if (values['db-user']) {
+      process.env.MCP_DATABASE_USER = values['db-user'];
+    }
+    if (values['db-password']) {
+      process.env.MCP_DATABASE_PASSWORD = values['db-password'];
+    }
+    if (values['toolbox-host']) {
+      process.env.MCP_TOOLBOX_HOST = values['toolbox-host'];
+    }
+    if (values['toolbox-port']) {
+      process.env.MCP_TOOLBOX_PORT = values['toolbox-port'];
+    }
+
+    const transportValue = (values.transport ?? process.env.MCP_TOOLBOX_TRANSPORT)?.toString().toLowerCase();
+    const useStdio = transportValue ? transportValue !== 'http' : values.stdio !== false;
+
     // 启动 MCP 服务器
     console.error('正在启动 MCP 服务器...');
     await startServer({
       binaryPath,
       config,
       verbose: values.verbose,
+      prebuiltType,
+      stdio: useStdio,
+      toolboxHost: values['toolbox-host'],
+      toolboxPort:
+        typeof values['toolbox-port'] === 'string'
+          ? Number(values['toolbox-port'])
+          : process.env.MCP_TOOLBOX_PORT
+            ? Number(process.env.MCP_TOOLBOX_PORT)
+            : undefined,
     });
 
     console.error('MCP 服务器已启动。按 Ctrl+C 停止。');

@@ -87,6 +87,148 @@ Run with custom config:
 mcp-database --config tools.yaml
 ```
 
+### SQLite Built-in Introspection Tools (Recommended for AI)
+
+Designed for AI to explore unknown databases without schema knowledge:
+
+```bash
+SQLITE_DATABASE=./your-database.db \
+npx @adversity/mcp-database --config prebuilt/sqlite-introspection.yaml
+```
+
+**15 Built-in Introspection Tools:**
+
+| Tool Set | Tool Name | Function |
+|----------|-----------|----------|
+| **Basic Exploration** | `sqlite_list_tables` | List all tables and views |
+| | `sqlite_describe_table` | View table structure (columns, types, keys) |
+| | `sqlite_list_columns` | List all column information |
+| | `sqlite_preview_table` | Preview first N rows of data |
+| | `sqlite_database_summary` | Complete database summary (tables, indexes, views) |
+| **Advanced Analysis** | `sqlite_list_indexes` | List all indexes |
+| | `sqlite_list_table_indexes` | View indexes for a specific table |
+| | `sqlite_describe_index` | View columns in an index |
+| | `sqlite_list_foreign_keys` | View foreign key relationships |
+| | `sqlite_get_table_schema` | Get table's CREATE statement |
+| **Statistics** | `sqlite_count_rows` | Count total rows in a table |
+| | `sqlite_table_stats` | Get statistics for all tables |
+| | `sqlite_database_info` | Database basic information |
+| | `sqlite_get_schema_version` | Get schema version number |
+
+**Typical AI Workflow:**
+```
+1. sqlite_list_tables → Discover users, orders, products tables
+2. sqlite_describe_table("users") → Understand column structure
+3. sqlite_preview_table("users", 5) → See actual data format
+4. sqlite_list_foreign_keys("orders") → Understand table relationships
+5. Now AI can confidently construct complex queries!
+```
+
+**MCP Client Configuration Example:**
+```json
+{
+  "mcpServers": {
+    "database": {
+      "command": "npx",
+      "args": ["@adversity/mcp-database", "--config", "prebuilt/sqlite-introspection.yaml"],
+      "env": {
+        "SQLITE_DATABASE": "./your-database.db"
+      }
+    }
+  }
+}
+```
+
+### SQLite Custom YAML Example
+
+1. Copy the example: `cp tools.example.yaml tools.yaml`
+2. Verify sample database exists: `ls sample.sqlite`
+3. Run:
+   ```bash
+   SQLITE_DATABASE=$(pwd)/sample.sqlite \
+   npx @adversity/mcp-database --config tools.yaml --verbose
+   ```
+4. The MCP client can access `sqlite_crud` toolset from `tools.example.yaml`:
+   - `sqlite_list_recent_users`: List recent 20 user records
+   - `sqlite_get_user_by_id`: Query by ID
+   - `sqlite_find_user_by_email`: Search by email
+   - `sqlite_create_user` / `sqlite_update_user_email` / `sqlite_delete_user`: Create/Update/Delete
+
+Example YAML snippet (from `tools.example.yaml`):
+
+```yaml
+tools:
+  sqlite_list_recent_users:
+    kind: sqlite-sql
+    source: my-sqlite
+    description: List recent 20 users ordered by creation time
+    statement: |
+      SELECT id, name, email, created_at
+      FROM users
+      ORDER BY datetime(created_at) DESC
+      LIMIT 20;
+
+  sqlite_create_user:
+    kind: sqlite-sql
+    source: my-sqlite
+    description: Create new user and return result
+    parameters:
+      - { name: name, type: string }
+      - { name: email, type: string }
+    statement: |
+      INSERT INTO users (name, email, created_at)
+      VALUES (?1, ?2, CURRENT_TIMESTAMP)
+      RETURNING id, name, email, created_at;
+
+toolsets:
+  sqlite_crud:
+    - sqlite_list_recent_users
+    - sqlite_get_user_by_id
+    - sqlite_find_user_by_email
+    - sqlite_create_user
+    - sqlite_update_user_email
+    - sqlite_delete_user
+```
+
+### Unified Environment Variables and CLI Override
+
+All prebuilt databases parse connection parameters in the following priority:
+
+1. Generic variables: `MCP_DATABASE_HOST/PORT/NAME/USER/PASSWORD`
+2. Legacy variables: Database-specific variables like `POSTGRES_HOST`, `MYSQL_PORT`, etc.
+3. Default values (e.g., host=localhost, port=5432)
+
+也可以通过 CLI 覆盖，所有值会自动写入通用变量：
+
+```bash
+mcp-database --prebuilt postgres \
+  --db-host prod-db.internal \
+  --db-port 6543 \
+  --db-name inventory \
+  --db-user readonly
+```
+
+### 自定义 toolbox 端口
+
+默认使用 STDIO 模式，不占用 TCP 端口；当需要切换到 HTTP（例如调试或远程访问）时，可指定传输方式与端口：
+
+```bash
+npx @adversity/mcp-database --prebuilt sqlite \
+  --transport http \
+  --toolbox-host 0.0.0.0 \
+  --toolbox-port 5900
+```
+
+对应环境变量：
+
+| 变量 | 说明 |
+| --- | --- |
+| `MCP_TOOLBOX_TRANSPORT` | `stdio`（默认）或 `http` |
+| `MCP_TOOLBOX_HOST` | HTTP 监听地址，默认 `127.0.0.1` |
+| `MCP_TOOLBOX_PORT` | HTTP 端口，默认 `5000` |
+
+CLI 也保留 `--stdio`（布尔）用于兼容旧脚本；推荐使用 `--transport` 来切换模式。
+
 ## MCP Integration
 
 ### Claude Code / Claude Desktop
@@ -257,6 +399,14 @@ mcp-database [OPTIONS]
 OPTIONS:
   -c, --config <path>    Path to tools.yaml configuration file
   -p, --prebuilt <type>  Use prebuilt config for database type
+      --db-host <value>  Override MCP_DATABASE_HOST（所有预置类型通用）
+      --db-port <value>  Override MCP_DATABASE_PORT
+      --db-name <value>  Override MCP_DATABASE_NAME（对应 database/schema）
+      --db-user <value>  Override MCP_DATABASE_USER
+      --db-password <value> Override MCP_DATABASE_PASSWORD
+      --transport <mode> Transport between wrapper 与 toolbox：`stdio`(默认) / `http`
+      --toolbox-host <value> 当 transport=http 时的监听地址（默认 127.0.0.1）
+      --toolbox-port <value> 当 transport=http 时的端口（默认 5000）
       --stdio            Use stdio transport (default: true)
   -v, --version          Print version
   -h, --help             Print help
@@ -285,6 +435,28 @@ const server = await startServer({
 
 // Server is now running
 ```
+
+## Testing
+
+The project includes comprehensive test coverage, especially for SQLite features:
+
+```bash
+# Run all tests
+npm test
+
+# Run only SQLite tests
+npm test -- sqlite
+
+# Run with coverage
+npm run test:coverage
+```
+
+**SQLite Test Coverage:**
+- ✅ 63 test cases, 100% passing
+- ✅ Configuration loading and environment variable handling
+- ✅ 15 built-in introspection tools validation
+- ✅ CRUD operations and parameterized queries
+- ✅ Toolset integration tests
 
 ## Development
 

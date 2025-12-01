@@ -44,3 +44,9 @@ coverage/
 # Logs
 logs/
 *.log
+
+# AI prompt
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+.claude

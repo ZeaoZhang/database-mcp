@@ -1,8 +1,9 @@
-# Example tools.yaml configuration for mcp-database
+# mcp-database 自定义 tools.yaml 示例
+# 可选：设置 MCP_DATABASE_HOST/PORT/NAME/USER/PASSWORD 统一控制默认数据库连接
 
-# Data sources - define your database connections
+# 数据源定义 - 声明可复用的数据库连接
 sources:
-  # PostgreSQL example
+  # PostgreSQL 示例
   my-postgres:
     kind: postgres
     host: ${POSTGRES_HOST:localhost}
@@ -11,7 +12,7 @@ sources:
     user: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD}
 
-  # MySQL example
+  # MySQL 示例
   my-mysql:
     kind: mysql
     host: ${MYSQL_HOST:localhost}
@@ -20,12 +21,12 @@ sources:
     user: ${MYSQL_USER:root}
     password: ${MYSQL_PASSWORD}
 
-  # SQLite example
+  # SQLite 示例（默认指向本仓库的 sample.sqlite）
   my-sqlite:
     kind: sqlite
-    database: ${SQLITE_DATABASE:./database.db}
+    database: ${SQLITE_DATABASE:./sample.sqlite}
 
-  # MongoDB example
+  # MongoDB 示例
   my-mongo:
     kind: mongodb
     host: ${MONGODB_HOST:localhost}
@@ -34,7 +35,7 @@ sources:
     user: ${MONGODB_USER}
     password: ${MONGODB_PASSWORD}
 
-  # Cloud SQL PostgreSQL example
+  # Cloud SQL PostgreSQL 示例
   my-cloud-sql:
     kind: cloud-sql-postgres
     project: ${GCP_PROJECT}
@@ -44,18 +45,17 @@ sources:
     user: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD}
 
-# Custom tools (optional)
-# If not specified, default tools (list_tables, execute_sql) will be used
+# 自定义工具（可选）。若未指定，则默认暴露 list_tables 与 execute_sql。
 tools:
-  # Example: Custom SQL query tool
+  # PostgreSQL 示例：按用户 ID 查询
   get_user_by_id:
     kind: postgres-sql
     source: my-postgres
-    description: Get user information by user ID
+    description: 通过用户 ID 获取单条详细信息
     parameters:
       - name: user_id
         type: number
-        description: The ID of the user to retrieve
+        description: 需要查询的用户主键 ID
     statement: |
       SELECT id, username, email, created_at
       FROM users
@@ -64,11 +64,11 @@ tools:
   search_users:
     kind: postgres-sql
     source: my-postgres
-    description: Search users by username or email
+    description: 按用户名或邮箱模糊搜索用户
     parameters:
       - name: query
         type: string
-        description: Search query string
+        description: 用于模糊匹配的关键字
     statement: |
       SELECT id, username, email
       FROM users
@@ -79,26 +79,117 @@ tools:
   create_user:
     kind: postgres-sql
     source: my-postgres
-    description: Create a new user
+    description: 创建新用户并返回结果
     parameters:
       - name: username
         type: string
-        description: Username for the new user
+        description: 新用户的用户名
       - name: email
         type: string
-        description: Email address for the new user
+        description: 新用户的邮箱地址
     statement: |
       INSERT INTO users (username, email, created_at)
       VALUES ($1, $2, NOW())
       RETURNING id, username, email;
 
-# Toolsets (optional)
-# Group tools for different use cases
+# SQLite 示例：针对 sample.sqlite 中 users 表的常见 CRUD 操作
+  sqlite_list_recent_users:
+    kind: sqlite-sql
+    source: my-sqlite
+    description: 按创建时间倒序列出最近 20 个用户
+    statement: |
+      SELECT id, name, email, created_at
+      FROM users
+      ORDER BY datetime(created_at) DESC
+      LIMIT 20;
+
+  sqlite_get_user_by_id:
+    kind: sqlite-sql
+    source: my-sqlite
+    description: 根据用户 ID 返回单条记录
+    parameters:
+      - name: user_id
+        type: number
+        description: 目标用户的主键 ID
+    statement: |
+      SELECT id, name, email, created_at
+      FROM users
+      WHERE id = ?1;
+
+  sqlite_find_user_by_email:
+    kind: sqlite-sql
+    source: my-sqlite
+    description: 根据邮箱模糊搜索用户
+    parameters:
+      - name: keyword
+        type: string
+        description: 支持局部匹配的邮箱关键词
+    statement: |
+      SELECT id, name, email, created_at
+      FROM users
+      WHERE email LIKE '%' || ?1 || '%'
+      ORDER BY email
+      LIMIT 20;
+
+  sqlite_create_user:
+    kind: sqlite-sql
+    source: my-sqlite
+    description: 新增用户并返回插入结果
+    parameters:
+      - name: name
+        type: string
+        description: 用户名称
+      - name: email
+        type: string
+        description: 用户邮箱
+    statement: |
+      INSERT INTO users (name, email, created_at)
+      VALUES (?1, ?2, CURRENT_TIMESTAMP)
+      RETURNING id, name, email, created_at;
+
+  sqlite_update_user_email:
+    kind: sqlite-sql
+    source: my-sqlite
+    description: 更新指定用户的邮箱
+    parameters:
+      - name: user_id
+        type: number
+        description: 用户主键 ID
+      - name: email
+        type: string
+        description: 新邮箱地址
+    statement: |
+      UPDATE users
+      SET email = ?2
+      WHERE id = ?1
+      RETURNING id, name, email, created_at;
+
+  sqlite_delete_user:
+    kind: sqlite-sql
+    source: my-sqlite
+    description: 根据 ID 删除用户
+    parameters:
+      - name: user_id
+        type: number
+        description: 将被删除的 ID
+    statement: |
+      DELETE FROM users
+      WHERE id = ?1
+      RETURNING id, name, email;
+
+# 工具集合（可选）
 toolsets:
   user_management:
     - get_user_by_id
     - search_users
     - create_user
+  sqlite_crud:
+    - sqlite_list_recent_users
+    - sqlite_get_user_by_id
+    - sqlite_find_user_by_email
+    - sqlite_create_user
+    - sqlite_update_user_email
+    - sqlite_delete_user
 
   read_only:
     - get_user_by_id
