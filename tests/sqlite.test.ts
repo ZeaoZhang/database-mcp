@@ -9,14 +9,24 @@ import { join } from 'path';
 
 describe('SQLite Configuration', () => {
   describe('generatePrebuiltConfig', () => {
-    it('should generate SQLite config with default database path', () => {
+    it('should generate SQLite config without default database path when env not set', () => {
+      // 清除环境变量
+      const originalEnv = process.env.DATABASE_NAME;
+      delete process.env.DATABASE_NAME;
+
       const config = generatePrebuiltConfig('sqlite');
 
       expect(config).toBeDefined();
       expect(config.sources).toBeDefined();
       expect(config.sources['sqlite-db']).toBeDefined();
       expect(config.sources['sqlite-db'].kind).toBe('sqlite');
-      expect(config.sources['sqlite-db'].database).toBe('./database.db');
+      // 不再设置默认值，database 应为 undefined
+      expect(config.sources['sqlite-db'].database).toBeUndefined();
+
+      // 恢复环境变量
+      if (originalEnv !== undefined) {
+        process.env.DATABASE_NAME = originalEnv;
+      }
     });
 
     it('should use DATABASE_NAME environment variable', () => {
@@ -33,14 +43,26 @@ describe('SQLite Configuration', () => {
       }
     });
 
-    it('should respect environment variable priority order', () => {
-      // Note: GLOBAL_DB_ENV is initialized at module load time,
-      // so we test the actual fallback behavior
-      const config = generatePrebuiltConfig('sqlite');
+    it('should only include database field when env is set', () => {
+      // 清除环境变量
+      const originalEnv = process.env.DATABASE_NAME;
+      delete process.env.DATABASE_NAME;
 
-      // The config should use GLOBAL_DB_ENV.database ?? SQLITE_DATABASE ?? default
-      expect(config.sources['sqlite-db'].database).toBeDefined();
-      expect(typeof config.sources['sqlite-db'].database).toBe('string');
+      const config = generatePrebuiltConfig('sqlite');
+      // 未设置环境变量时，database 字段不存在
+      expect(config.sources['sqlite-db'].database).toBeUndefined();
+
+      // 设置环境变量后，database 字段存在
+      process.env.DATABASE_NAME = '/path/to/db.sqlite';
+      const config2 = generatePrebuiltConfig('sqlite');
+      expect(config2.sources['sqlite-db'].database).toBe('/path/to/db.sqlite');
+
+      // 恢复环境变量
+      if (originalEnv !== undefined) {
+        process.env.DATABASE_NAME = originalEnv;
+      } else {
+        delete process.env.DATABASE_NAME;
+      }
     });
   });
 

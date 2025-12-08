@@ -1,6 +1,6 @@
 {
   "name": "@adversity/mcp-database",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "description": "MCP server for database operations with support for 40+ databases via genai-toolbox",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -20,7 +20,7 @@
     "dev": "tsup --watch",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
@@ -62,10 +62,10 @@
     "LICENSE"
   ],
   "optionalDependencies": {
-    "@adversity/mcp-database-darwin-arm64": "0.2.0",
-    "@adversity/mcp-database-darwin-x64": "0.2.0",
-    "@adversity/mcp-database-linux-x64": "0.2.0",
-    "@adversity/mcp-database-win32-x64": "0.2.0"
+    "@adversity/mcp-database-darwin-arm64": "0.3.1",
+    "@adversity/mcp-database-darwin-x64": "0.3.1",
+    "@adversity/mcp-database-linux-x64": "0.3.1",
+    "@adversity/mcp-database-win32-x64": "0.3.1"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
@@ -73,6 +73,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@types/node": "^20.17.9",
     "@typescript-eslint/eslint-plugin": "^8.18.1",
     "@typescript-eslint/parser": "^8.18.1",
@@ -80,6 +81,7 @@
     "prettier": "^3.4.2",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "typescript-eslint": "^8.48.1",
+    "vitest": "^4.0.15"
   }
 }

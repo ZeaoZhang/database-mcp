@@ -211,7 +211,7 @@ tools:
         type: string
         description: 要预览的表名
       - name: limit
-        type: number
+        type: integer
         description: 返回的行数，默认 10
     statement: |
       SELECT * FROM ?1 LIMIT ?2;

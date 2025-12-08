@@ -16,6 +16,54 @@ import { join } from 'path';
 import { setTimeout as delay } from 'timers/promises';
 import { stringify as stringifyYaml } from 'yaml';
 import type { ToolsConfig, PrebuiltDatabase } from './types.js';
+import { getBuiltinToolDefinitions, findBuiltinTool } from './builtin-tools.js';
+
+/**
+ * Map unified DATABASE_* environment variables to toolbox-specific format
+ * This allows users to use a single set of environment variables regardless of database type
+ */
+function mapEnvForToolbox(env: Record<string, string>, prebuiltType?: PrebuiltDatabase): Record<string, string> {
+  const result = { ...env };
+
+  // Get unified environment variables
+  const dbHost = env.DATABASE_HOST;
+  const dbPort = env.DATABASE_PORT;
+  const dbName = env.DATABASE_NAME;
+  const dbUser = env.DATABASE_USER;
+  const dbPassword = env.DATABASE_PASSWORD;
+
+  // Map to toolbox-specific environment variables based on database type
+  if (prebuiltType) {
+    const upperType = prebuiltType.toUpperCase().replace(/-/g, '_');
+
+    // Map DATABASE_NAME to {TYPE}_DATABASE (e.g., SQLITE_DATABASE, POSTGRES_DATABASE)
+    if (dbName && !env[`${upperType}_DATABASE`]) {
+      result[`${upperType}_DATABASE`] = dbName;
+    }
+
+    // Map DATABASE_HOST to {TYPE}_HOST
+    if (dbHost && !env[`${upperType}_HOST`]) {
+      result[`${upperType}_HOST`] = dbHost;
+    }
+
+    // Map DATABASE_PORT to {TYPE}_PORT
+    if (dbPort && !env[`${upperType}_PORT`]) {
+      result[`${upperType}_PORT`] = dbPort;
+    }
+
+    // Map DATABASE_USER to {TYPE}_USER
+    if (dbUser && !env[`${upperType}_USER`]) {
+      result[`${upperType}_USER`] = dbUser;
+    }
+
+    // Map DATABASE_PASSWORD to {TYPE}_PASSWORD
+    if (dbPassword && !env[`${upperType}_PASSWORD`]) {
+      result[`${upperType}_PASSWORD`] = dbPassword;
+    }
+  }
+
+  return result;
+}
 
 export interface ServerOptions {
   binaryPath: string;
@@ -54,19 +102,33 @@ export class DatabaseMCPServer {
   }
 
   private setupHandlers(): void {
-    // List available tools
+    // List available tools (toolbox tools + built-in tools)
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       const toolboxClient = this.getToolboxClient();
-      return toolboxClient.listTools();
+      const toolboxResult = await toolboxClient.listTools();
+
+      // Add built-in tools to the list
+      const builtinTools = getBuiltinToolDefinitions();
+      const allTools = [...(toolboxResult.tools || []), ...builtinTools];
+
+      return { tools: allTools };
     });
 
     // Execute tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
+      const safeArgs = args && typeof args === 'object' ? (args as Record<string, unknown>) : {};
 
       try {
+        // Check if this is a built-in tool
+        const builtinTool = findBuiltinTool(name);
+        if (builtinTool) {
+          const toolboxClient = this.getToolboxClient();
+          return await builtinTool.handler(safeArgs, toolboxClient, this.options.prebuiltType);
+        }
+
+        // Otherwise, forward to toolbox
         const toolboxClient = this.getToolboxClient();
-        const safeArgs = args && typeof args === 'object' ? (args as Record<string, unknown>) : {};
         return await toolboxClient.callTool({
           name,
           arguments: safeArgs,
@@ -154,6 +216,9 @@ export class DatabaseMCPServer {
       Object.entries(process.env).filter((entry): entry is [string, string] => typeof entry[1] === 'string')
     );
 
+    // Map unified DATABASE_* env vars to toolbox-specific format
+    const toolboxEnv = mapEnvForToolbox(sanitizedEnv, this.options.prebuiltType);
+
     const baseArgs = this.options.prebuiltType
       ? ['--prebuilt', this.options.prebuiltType]
       : ['--tools-file', this.configPath];
@@ -162,7 +227,7 @@ export class DatabaseMCPServer {
       const transport = new ToolboxStdioClientTransport({
         command: this.options.binaryPath,
         args: [...baseArgs, '--stdio'],
-        env: sanitizedEnv,
+        env: toolboxEnv,
       });
 
       const client = new Client({
@@ -185,7 +250,7 @@ export class DatabaseMCPServer {
 
     const toolboxArgs = [...baseArgs, '--address', host, '--port', String(port)];
     const toolboxProcess = spawn(this.options.binaryPath, toolboxArgs, {
-      env: sanitizedEnv,
+      env: toolboxEnv,
       stdio: this.options.verbose ? 'inherit' : 'ignore',
     });
 

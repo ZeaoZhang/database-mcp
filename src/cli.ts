@@ -91,7 +91,7 @@ async function main() {
     }
 
     if (values.version) {
-      console.log('mcp-database v0.2.0');
+      console.log('mcp-database v0.3.0');
       process.exit(0);
     }
 

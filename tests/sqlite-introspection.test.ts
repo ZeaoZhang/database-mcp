@@ -311,7 +311,7 @@ describe('SQLite Introspection Tools', () => {
 
       // 验证参数类型正确
       expect(config.tools?.sqlite_describe_table?.parameters?.[0].type).toBe('string');
-      expect(config.tools?.sqlite_preview_table?.parameters?.[1].type).toBe('number');
+      expect(config.tools?.sqlite_preview_table?.parameters?.[1].type).toBe('integer');
     });
   });
 

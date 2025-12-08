@@ -4,7 +4,7 @@
 
 import { readFileSync } from 'fs';
 import { parse as parseYaml } from 'yaml';
-import type { ToolsConfig, PrebuiltDatabase } from './types.js';
+import type { ToolsConfig, PrebuiltDatabase, DatabaseSource } from './types.js';
 
 // Helper function to get current environment variables dynamically
 function getGlobalDbEnv() {
@@ -64,143 +64,113 @@ function replaceEnvVars(obj: unknown): any {
 }
 
 /**
- * Generate a minimal tools.yaml config for prebuilt database types
+ * 构建配置对象，只包含已设置的环境变量
+ * 未设置的字段不会包含在配置中，让 genai-toolbox 自行处理和报错
  */
+function buildSourceConfig(kind: string, env: ReturnType<typeof getGlobalDbEnv>): DatabaseSource {
+  const config: DatabaseSource = { kind };
+
+  // 只添加已设置的环境变量
+  if (env.host) config.host = env.host;
+  if (env.port) config.port = toNumber(env.port, 0);
+  if (env.database) config.database = env.database;
+  if (env.user) config.user = env.user;
+  if (env.password) config.password = env.password;
+
+  return config;
+}
+
 export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
   const GLOBAL_DB_ENV = getGlobalDbEnv();
+
   const configs: Record<PrebuiltDatabase, ToolsConfig> = {
     postgres: {
       sources: {
-        'postgres-db': {
-          kind: 'postgres',
-          host: GLOBAL_DB_ENV.host ?? 'localhost',
-          port: toNumber(GLOBAL_DB_ENV.port, 5432),
-          database: GLOBAL_DB_ENV.database ?? 'postgres',
-          user: GLOBAL_DB_ENV.user ?? 'postgres',
-          password: GLOBAL_DB_ENV.password ?? '',
-        },
+        'postgres-db': buildSourceConfig('postgres', GLOBAL_DB_ENV),
       },
     },
     mysql: {
       sources: {
-        'mysql-db': {
-          kind: 'mysql',
-          host: GLOBAL_DB_ENV.host ?? 'localhost',
-          port: toNumber(GLOBAL_DB_ENV.port, 3306),
-          database: GLOBAL_DB_ENV.database ?? 'mysql',
-          user: GLOBAL_DB_ENV.user ?? 'root',
-          password: GLOBAL_DB_ENV.password ?? '',
-        },
+        'mysql-db': buildSourceConfig('mysql', GLOBAL_DB_ENV),
       },
     },
     sqlite: {
       sources: {
-        'sqlite-db': {
-          kind: 'sqlite',
-          database: GLOBAL_DB_ENV.database ?? './database.db',
-        },
+        'sqlite-db': buildSourceConfig('sqlite', GLOBAL_DB_ENV),
       },
     },
     mongodb: {
       sources: {
-        'mongo-db': {
-          kind: 'mongodb',
-          host: GLOBAL_DB_ENV.host ?? 'localhost',
-          port: toNumber(GLOBAL_DB_ENV.port, 27017),
-          database: GLOBAL_DB_ENV.database ?? 'test',
-          user: GLOBAL_DB_ENV.user ?? '',
-          password: GLOBAL_DB_ENV.password ?? '',
-        },
+        'mongo-db': buildSourceConfig('mongodb', GLOBAL_DB_ENV),
       },
     },
     redis: {
       sources: {
-        'redis-db': {
-          kind: 'redis',
-          host: GLOBAL_DB_ENV.host ?? 'localhost',
-          port: toNumber(GLOBAL_DB_ENV.port, 6379),
-          password: GLOBAL_DB_ENV.password ?? '',
-        },
+        'redis-db': buildSourceConfig('redis', GLOBAL_DB_ENV),
       },
     },
     mssql: {
       sources: {
-        'mssql-db': {
-          kind: 'mssql',
-          host: GLOBAL_DB_ENV.host ?? 'localhost',
-          port: toNumber(GLOBAL_DB_ENV.port, 1433),
-          database: GLOBAL_DB_ENV.database ?? 'master',
-          user: GLOBAL_DB_ENV.user ?? 'sa',
-          password: GLOBAL_DB_ENV.password ?? '',
-        },
+        'mssql-db': buildSourceConfig('mssql', GLOBAL_DB_ENV),
       },
     },
     'cloud-sql-postgres': {
       sources: {
         'cloud-sql-pg': {
-          kind: 'cloud-sql-postgres',
-          project: process.env.GCP_PROJECT ?? '',
-          region: process.env.GCP_REGION ?? 'us-central1',
-          instance: process.env.CLOUD_SQL_INSTANCE ?? '',
-          database: GLOBAL_DB_ENV.database ?? 'postgres',
-          user: GLOBAL_DB_ENV.user ?? 'postgres',
-          password: GLOBAL_DB_ENV.password ?? '',
-        },
+          ...buildSourceConfig('cloud-sql-postgres', GLOBAL_DB_ENV),
+          ...(process.env.GCP_PROJECT && { project: process.env.GCP_PROJECT }),
+          ...(process.env.GCP_REGION && { region: process.env.GCP_REGION }),
+          ...(process.env.CLOUD_SQL_INSTANCE && { instance: process.env.CLOUD_SQL_INSTANCE }),
+        } as DatabaseSource,
       },
     },
     'cloud-sql-mysql': {
       sources: {
         'cloud-sql-mysql': {
-          kind: 'cloud-sql-mysql',
-          project: process.env.GCP_PROJECT ?? '',
-          region: process.env.GCP_REGION ?? 'us-central1',
-          instance: process.env.CLOUD_SQL_INSTANCE ?? '',
-          database: GLOBAL_DB_ENV.database ?? 'mysql',
-          user: GLOBAL_DB_ENV.user ?? 'root',
-          password: GLOBAL_DB_ENV.password ?? '',
-        },
+          ...buildSourceConfig('cloud-sql-mysql', GLOBAL_DB_ENV),
+          ...(process.env.GCP_PROJECT && { project: process.env.GCP_PROJECT }),
+          ...(process.env.GCP_REGION && { region: process.env.GCP_REGION }),
+          ...(process.env.CLOUD_SQL_INSTANCE && { instance: process.env.CLOUD_SQL_INSTANCE }),
+        } as DatabaseSource,
       },
     },
     'alloydb-pg': {
       sources: {
         'alloydb-pg': {
-          kind: 'alloydb-pg',
-          project: process.env.GCP_PROJECT ?? '',
-          region: process.env.GCP_REGION ?? 'us-central1',
-          cluster: process.env.ALLOYDB_CLUSTER ?? '',
-          instance: process.env.ALLOYDB_INSTANCE ?? '',
-          database: GLOBAL_DB_ENV.database ?? 'postgres',
-          user: GLOBAL_DB_ENV.user ?? 'postgres',
-          password: GLOBAL_DB_ENV.password ?? '',
-        },
+          ...buildSourceConfig('alloydb-pg', GLOBAL_DB_ENV),
+          ...(process.env.GCP_PROJECT && { project: process.env.GCP_PROJECT }),
+          ...(process.env.GCP_REGION && { region: process.env.GCP_REGION }),
+          ...(process.env.ALLOYDB_CLUSTER && { cluster: process.env.ALLOYDB_CLUSTER }),
+          ...(process.env.ALLOYDB_INSTANCE && { instance: process.env.ALLOYDB_INSTANCE }),
+        } as DatabaseSource,
       },
     },
     bigquery: {
       sources: {
         bigquery: {
           kind: 'bigquery',
-          project: process.env.GCP_PROJECT ?? '',
-          dataset: process.env.BIGQUERY_DATASET ?? '',
-        },
+          ...(process.env.GCP_PROJECT && { project: process.env.GCP_PROJECT }),
+          ...(process.env.BIGQUERY_DATASET && { dataset: process.env.BIGQUERY_DATASET }),
+        } as DatabaseSource,
       },
     },
     spanner: {
       sources: {
         spanner: {
           kind: 'spanner',
-          project: process.env.GCP_PROJECT ?? '',
-          instance: process.env.SPANNER_INSTANCE ?? '',
-          database: process.env.SPANNER_DATABASE ?? '',
-        },
+          ...(process.env.GCP_PROJECT && { project: process.env.GCP_PROJECT }),
+          ...(process.env.SPANNER_INSTANCE && { instance: process.env.SPANNER_INSTANCE }),
+          ...(process.env.SPANNER_DATABASE && { database: process.env.SPANNER_DATABASE }),
+        } as DatabaseSource,
       },
     },
     firestore: {
       sources: {
         firestore: {
           kind: 'firestore',
-          project: process.env.GCP_PROJECT ?? '',
-          database: process.env.FIRESTORE_DATABASE ?? '(default)',
-        },
+          ...(process.env.GCP_PROJECT && { project: process.env.GCP_PROJECT }),
+          ...(process.env.FIRESTORE_DATABASE && { database: process.env.FIRESTORE_DATABASE }),
+        } as DatabaseSource,
       },
     },
   };
@@ -210,29 +180,9 @@ export function generatePrebuiltConfig(dbType: PrebuiltDatabase): ToolsConfig {
 
 /**
  * Validate that required environment variables are set for a prebuilt database
+ * 不再做校验，让 genai-toolbox 自行报错
+ * @deprecated 保留此函数以保持向后兼容，但不再执行任何校验
  */
-export function validatePrebuiltEnv(dbType: PrebuiltDatabase): void {
-  const requiredVars: Record<PrebuiltDatabase, string[]> = {
-    postgres: [],
-    mysql: [],
-    sqlite: [],
-    mongodb: [],
-    redis: [],
-    mssql: [],
-    'cloud-sql-postgres': ['GCP_PROJECT', 'CLOUD_SQL_INSTANCE'],
-    'cloud-sql-mysql': ['GCP_PROJECT', 'CLOUD_SQL_INSTANCE'],
-    'alloydb-pg': ['GCP_PROJECT', 'ALLOYDB_CLUSTER', 'ALLOYDB_INSTANCE'],
-    bigquery: ['GCP_PROJECT'],
-    spanner: ['GCP_PROJECT', 'SPANNER_INSTANCE', 'SPANNER_DATABASE'],
-    firestore: ['GCP_PROJECT'],
-  };
-
-  const missing = requiredVars[dbType]?.filter((varName) => !process.env[varName]) ?? [];
-
-  if (missing.length > 0) {
-    throw new Error(
-      `Missing required environment variables for ${dbType}: ${missing.join(', ')}\n` +
-        `Please set these variables or provide a custom config file.`
-    );
-  }
+export function validatePrebuiltEnv(_dbType: PrebuiltDatabase): void {
+  // 不做校验，让 genai-toolbox 自行处理和报错
 }

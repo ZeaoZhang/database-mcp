@@ -3,8 +3,6 @@
 # 发布所有平台包到 npm
 # 需要先运行 download-binaries.sh
 
-set -e
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 PACKAGES_DIR="$ROOT_DIR/packages"
@@ -42,9 +40,9 @@ for pkg_name in "${PLATFORMS[@]}"; do
   cd "$pkg_dir"
 
   if [ "$DRY_RUN" = "true" ]; then
-    npm publish --dry-run
+    npm publish --dry-run || echo "Failed to publish @adversity/mcp-database-$pkg_name, continuing..."
   else
-    npm publish --access public
+    npm publish --access public || echo "Failed to publish @adversity/mcp-database-$pkg_name, continuing..."
   fi
 
   echo ""
@@ -55,9 +53,9 @@ echo "=== Publishing main package (@adversity/mcp-database) ==="
 cd "$ROOT_DIR"
 
 if [ "$DRY_RUN" = "true" ]; then
-  npm publish --dry-run
+  npm publish --dry-run || echo "Failed to publish @adversity/mcp-database, continuing..."
 else
-  npm publish --access public
+  npm publish --access public || echo "Failed to publish @adversity/mcp-database, continuing..."
 fi
 
 echo ""
